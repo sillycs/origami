@@ -24,6 +24,10 @@
 
 	<meta name="theme-color" content="#ffffff">
 
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+
 	<style>
 		html, body {
 			margin: 0;
@@ -56,28 +60,116 @@
 			z-index: 0;
 		}
 
-		iframe {
+		.container {
 			position: relative;
 			z-index: 1;
 
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+
+			width: 100%;
+			height: 100%;
+		}
+
+		.logo {
+			display: block;
+
+			width: 420px;
+			max-width: 75vw;
+			height: auto;
+
+			margin-bottom: 18px;
+		}
+
+		iframe {
 			width: 500px;
 			height: 800px;
+
 			max-width: 100vw;
-			max-height: 100vh;
+			max-height: 75vh;
 
 			border: 0;
 			border-radius: 24px;
+
 			display: block;
 			overflow: hidden;
+		}
+
+		.credits {
+			margin-top: 18px;
+
+			color: white;
+			font-family: "Schoolbell", cursive;
+			font-size: 20px;
+			line-height: 1.25;
+
+			text-align: center;
+
+			text-shadow:
+				2px 2px 0 rgba(0, 0, 0, 0.45);
+		}
+
+		.credits div {
+			margin: 2px 0;
+		}
+
+		@media (max-height: 900px) {
+			.logo {
+				width: 320px;
+				margin-bottom: 10px;
+			}
+
+			iframe {
+				max-height: 68vh;
+			}
+
+			.credits {
+				margin-top: 10px;
+				font-size: 17px;
+			}
+		}
+
+		@media (max-width: 600px) {
+			.logo {
+				width: 300px;
+				max-width: 70vw;
+			}
+
+			iframe {
+				width: 100vw;
+				max-width: 100vw;
+				border-radius: 18px;
+			}
+
+			.credits {
+				font-size: 16px;
+			}
 		}
 	</style>
 </head>
 
 <body>
-	<iframe
-		src="game/index.html"
-		allow="autoplay; fullscreen"
-		allowfullscreen>
-	</iframe>
+	<div class="container">
+
+		<img
+			class="logo"
+			src="/origamiBattles_logo2.png"
+			alt="Origami Battles"
+		>
+
+		<iframe
+			src="game/index.html"
+			allow="autoplay; fullscreen"
+			allowfullscreen>
+		</iframe>
+
+		<div class="credits">
+			<div>Programmed by @SillyCS</div>
+			<div>Created by @OrigamiBattles</div>
+		</div>
+
+	</div>
 </body>
 </html>
