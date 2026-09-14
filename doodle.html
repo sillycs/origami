@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Make your doodle — Origami Battles</title>
+	<meta name="description" content="Draw your own origami doodle: layers, colors, brushes and transparent export.">
+	<link rel="icon" type="image/png" href="/origami.png">
+	<link rel="apple-touch-icon" href="/origami.png">
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="Make your doodle — Origami Battles">
+	<meta property="og:description" content="Draw your own origami doodle: layers, colors, brushes and transparent export.">
+	<meta property="og:image" content="https://origamis.wtf/origami.png">
+	<meta property="og:url" content="https://origamis.wtf/doodle.html">
+	<meta property="og:site_name" content="Origami Battles">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="Make your doodle — Origami Battles">
+	<meta name="twitter:description" content="Draw your own origami doodle: layers, colors, brushes and transparent export.">
+	<meta name="twitter:image" content="https://origamis.wtf/origami.png">
+	<meta name="theme-color" content="#ffffff">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+	<style>
+		*, *::before, *::after { box-sizing: border-box; }
+
+		html, body {
+			margin: 0;
+			width: 100%;
+			min-height: 100%;
+		}
+		body {
+			position: relative;
+			font-family: "Schoolbell", cursive;
+			background-image: url('/back.png');
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+			background-attachment: fixed;
+			padding: 20px 16px 40px;
+			overscroll-behavior: none;
+		}
+		body::before {
+			content: "";
+			position: fixed;
+			inset: 0;
+			background: rgba(0, 0, 0, 0.45);
+			pointer-events: none;
+			z-index: 0;
+		}
+
+		.page {
+			position: relative;
+			z-index: 1;
+			max-width: 1120px;
+			margin: 0 auto;
+		}
+
+		.top {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 14px;
+			flex-wrap: wrap;
+			margin-bottom: 18px;
+		}
+		.title {
+			margin: 0;
+			font-weight: 400;
+			font-size: 40px;
+			line-height: 1;
+			color: #fff;
+			text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+		}
+		.title small {
+			display: block;
+			font-size: 18px;
+			opacity: .85;
+			margin-top: 4px;
+		}
+
+		.sketch-btn {
+			font-family: "Schoolbell", cursive;
+			font-size: 20px;
+			line-height: 1;
+			color: #000;
+			background: #fff;
+			border: 3px solid #000;
+			border-radius: 14px 5px 16px 6px / 6px 16px 5px 14px;
+			padding: 11px 20px;
+			text-decoration: none;
+			white-space: nowrap;
+			box-shadow: 4px 4px 0 #000;
+			transform: rotate(-1.2deg);
+			transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+			cursor: pointer;
+			display: inline-block;
+		}
+		.sketch-btn:nth-of-type(even) {
+			transform: rotate(1.2deg);
+			border-radius: 6px 16px 5px 14px / 14px 5px 16px 6px;
+		}
+		.sketch-btn:hover,
+		.sketch-btn:focus-visible {
+			transform: rotate(0deg) translate(-1px, -2px);
+			box-shadow: 6px 7px 0 #000;
+			outline: none;
+		}
+		.sketch-btn:focus-visible { box-shadow: 6px 7px 0 #000, 0 0 0 3px #fff; }
+		.sketch-btn:active {
+			transform: rotate(0deg) translate(3px, 3px);
+			box-shadow: 1px 1px 0 #000;
+		}
+		.sketch-btn[aria-pressed="true"] {
+			background: #ffe14d;
+		}
+		.sketch-btn.big {
+			font-size: 26px;
+			padding: 14px 30px;
+		}
+
+		.layout {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) 310px;
+			gap: 20px;
+			align-items: start;
+		}
+		.panel {
+			background: #fff;
+			border: 3px solid #000;
+			border-radius: 18px 7px 20px 8px / 8px 20px 7px 18px;
+			box-shadow: 5px 6px 0 #000;
+			padding: 16px;
+		}
+		.panel + .panel { margin-top: 18px; }
+		.panel h2 {
+			margin: 0 0 10px;
+			font-size: 24px;
+			font-weight: 400;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+		}
+		.hint {
+			font-size: 15px;
+			color: #555;
+			margin: 8px 0 0;
+		}
+
+		.stage-panel {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 14px;
+		}
+		.stage {
+			position: relative;
+			width: 100%;
+			max-width: 620px;
+			aspect-ratio: 1 / 1;
+		}
+		#board {
+			width: 100%;
+			height: 100%;
+			display: block;
+			border: 3px solid #000;
+			border-radius: 10px 4px 12px 5px / 5px 12px 4px 10px;
+			touch-action: none;
+			cursor: crosshair;
+			background: #fff;
+		}
+		#ring {
+			position: absolute;
+			border: 2px solid #000;
+			border-radius: 50%;
+			pointer-events: none;
+			mix-blend-mode: difference;
+			filter: invert(1);
+			opacity: 0;
+			transform: translate(-50%, -50%);
+			transition: opacity .1s ease;
+		}
+
+		.row {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 10px;
+		}
+		.row.tight { gap: 6px; }
+
+		.swatches {
+			display: grid;
+			grid-template-columns: repeat(8, 1fr);
+			gap: 6px;
+			margin-top: 10px;
+		}
+		.swatch {
+			aspect-ratio: 1 / 1;
+			border: 2px solid #000;
+			border-radius: 7px 3px 8px 4px / 4px 8px 3px 7px;
+			cursor: pointer;
+			padding: 0;
+			transition: transform .1s ease;
+		}
+		.swatch:hover { transform: scale(1.12) rotate(-4deg); }
+		.swatch[aria-pressed="true"] {
+			box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000;
+		}
+		input[type="color"] {
+			width: 54px;
+			height: 40px;
+			padding: 2px;
+			background: #fff;
+			border: 3px solid #000;
+			border-radius: 9px 4px 10px 5px / 5px 10px 4px 9px;
+			cursor: pointer;
+		}
+		input[type="range"] {
+			-webkit-appearance: none;
+			appearance: none;
+			flex: 1;
+			min-width: 110px;
+			height: 12px;
+			background: #fff;
+			border: 3px solid #000;
+			border-radius: 20px;
+			cursor: pointer;
+		}
+		input[type="range"]::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			appearance: none;
+			width: 22px;
+			height: 22px;
+			background: #000;
+			border-radius: 50%;
+			border: 2px solid #fff;
+		}
+		input[type="range"]::-moz-range-thumb {
+			width: 20px;
+			height: 20px;
+			background: #000;
+			border: 2px solid #fff;
+			border-radius: 50%;
+		}
+		.num {
+			font-size: 19px;
+			min-width: 46px;
+			text-align: right;
+		}
+
+		.layer-list {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			max-height: 320px;
+			overflow-y: auto;
+		}
+		.layer {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 6px;
+			border: 2px dashed #999;
+			border-radius: 10px 4px 12px 5px / 5px 12px 4px 10px;
+			background: #fff;
+		}
+		.layer.active {
+			border: 2px solid #000;
+			background: #fffbe6;
+			box-shadow: 3px 3px 0 #000;
+		}
+		.layer .thumb {
+			width: 40px;
+			height: 40px;
+			border: 2px solid #000;
+			border-radius: 6px;
+			flex: 0 0 auto;
+			cursor: pointer;
+		}
+		.layer .lname {
+			flex: 1;
+			font-size: 18px;
+			cursor: pointer;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.layer.hidden .lname,
+		.layer.hidden .thumb { opacity: .35; }
+		.mini {
+			font-family: "Schoolbell", cursive;
+			font-size: 16px;
+			line-height: 1;
+			background: #fff;
+			border: 2px solid #000;
+			border-radius: 7px 3px 8px 4px / 4px 8px 3px 7px;
+			padding: 5px 7px;
+			cursor: pointer;
+		}
+		.mini:hover { background: #ffe14d; }
+		.mini:active { transform: translate(1px, 1px); }
+		.lbtns { display: flex; gap: 4px; }
+
+		.check {
+			display: inline-flex;
+			align-items: center;
+			gap: 9px;
+			font-size: 19px;
+			cursor: pointer;
+			user-select: none;
+		}
+		.check input { position: absolute; opacity: 0; pointer-events: none; }
+		.box {
+			width: 26px;
+			height: 26px;
+			border: 3px solid #000;
+			border-radius: 8px 3px 9px 4px / 4px 9px 3px 8px;
+			background: #fff;
+			display: grid;
+			place-items: center;
+			font-size: 20px;
+			line-height: 1;
+			flex: 0 0 auto;
+		}
+		.box::after { content: "✗"; opacity: 0; }
+		.check input:checked + .box::after { opacity: 1; }
+		.check input:focus-visible + .box { box-shadow: 0 0 0 3px #ffe14d, 0 0 0 5px #000; }
+
+		.download-panel {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 12px;
+			text-align: center;
+		}
+
+		#confetti {
+			position: fixed;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+			z-index: 50;
+		}
+		.cheer {
+			position: fixed;
+			z-index: 51;
+			transform: translate(-50%, -50%);
+			font-family: "Schoolbell", cursive;
+			font-size: 54px;
+			color: #fff;
+			-webkit-text-stroke: 3px #000;
+			paint-order: stroke fill;
+			pointer-events: none;
+			animation: cheer 1.5s ease-out forwards;
+		}
+		@keyframes cheer {
+			0%   { opacity: 0; transform: translate(-50%, -50%) scale(.4) rotate(-8deg); }
+			18%  { opacity: 1; transform: translate(-50%, -70%) scale(1.15) rotate(3deg); }
+			35%  { transform: translate(-50%, -85%) scale(1) rotate(-2deg); }
+			100% { opacity: 0; transform: translate(-50%, -180%) scale(1) rotate(2deg); }
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.sketch-btn, .swatch { transition: none; }
+			.cheer { animation-duration: .01s; }
+		}
+
+		@media (max-width: 900px) {
+			.layout { grid-template-columns: minmax(0, 1fr); }
+			.title { font-size: 32px; }
+			.layer-list { max-height: none; }
+		}
+		@media (max-width: 520px) {
+			body { padding: 14px 10px 30px; }
+			.sketch-btn { font-size: 18px; padding: 9px 15px; }
+			.sketch-btn.big { font-size: 22px; padding: 12px 22px; }
+			.swatches { grid-template-columns: repeat(6, 1fr); }
+		}
+	</style>
+</head>
+<body>
+	<div class="page">
+		<div class="top">
+			<h1 class="title">
+				Make your doodle
+				<small>draw it, layer it, take it home</small>
+			</h1>
+			<div class="row">
+				<a class="sketch-btn" href="/">Back to the game</a>
+				<a class="sketch-btn" href="/changelogs.html">Changelogs</a>
+			</div>
+		</div>
+
+		<div class="layout">
+			<!-- ============ canvas ============ -->
+			<div>
+				<div class="panel stage-panel">
+					<div class="stage">
+						<canvas id="board" width="1000" height="1000" aria-label="Drawing canvas"></canvas>
+						<div id="ring"></div>
+					</div>
+					<div class="row" style="justify-content:center">
+						<button class="sketch-btn" id="undo" title="Ctrl + Z">Undo</button>
+						<button class="sketch-btn" id="redo" title="Ctrl + Shift + Z">Redo</button>
+						<button class="sketch-btn" id="clearLayer">Clear layer</button>
+						<button class="sketch-btn" id="clearAll">Start over</button>
+					</div>
+				</div>
+
+				<div class="panel download-panel">
+					<label class="check">
+						<input type="checkbox" id="withBg" checked>
+						<span class="box"></span>
+						<span>Include the background layer</span>
+					</label>
+					<button class="sketch-btn big" id="download">Download my doodle</button>
+					<p class="hint" id="dlHint">Unchecked gives you a transparent PNG.</p>
+				</div>
+			</div>
+
+			<!-- ============ tools ============ -->
+			<div>
+				<div class="panel">
+					<h2>Tools</h2>
+					<div class="row tight">
+						<button class="sketch-btn" id="toolBrush" aria-pressed="true" title="B">Brush</button>
+						<button class="sketch-btn" id="toolEraser" aria-pressed="false" title="E">Eraser</button>
+						<button class="sketch-btn" id="fillLayer">Fill layer</button>
+					</div>
+
+					<div class="row" style="margin-top:14px">
+						<span>Size</span>
+						<input type="range" id="size" min="1" max="120" value="12">
+						<span class="num" id="sizeNum">12</span>
+					</div>
+
+					<div class="row" style="margin-top:12px">
+						<span>Color</span>
+						<input type="color" id="color" value="#111111">
+						<span class="hint" style="margin:0">[ and ] resize</span>
+					</div>
+					<div class="swatches" id="swatches"></div>
+				</div>
+
+				<div class="panel">
+					<h2>
+						Layers
+						<button class="mini" id="addLayer">+ new</button>
+					</h2>
+					<ul class="layer-list" id="layerList"></ul>
+					<div class="row" style="margin-top:12px">
+						<span>Opacity</span>
+						<input type="range" id="opacity" min="0" max="100" value="100">
+						<span class="num" id="opacityNum">100%</span>
+					</div>
+					<p class="hint">Click a name to rename. The background sits at the bottom and can be turned off for a transparent export.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<canvas id="confetti"></canvas>
+
+<script>
+(function () {
+	"use strict";
+
+	const W = 1000, H = 1000;
+
+	const board = document.getElementById('board');
+	const view = board.getContext('2d');
+	const ring = document.getElementById('ring');
+
+	const checker = (function () {
+		const c = document.createElement('canvas');
+		c.width = c.height = 32;
+		const x = c.getContext('2d');
+		x.fillStyle = '#ffffff'; x.fillRect(0, 0, 32, 32);
+		x.fillStyle = '#dcdcdc'; x.fillRect(0, 0, 16, 16); x.fillRect(16, 16, 16, 16);
+		return view.createPattern(c, 'repeat');
+	})();
+
+	let uid = 0;
+	function makeLayer(name, isBg) {
+		const c = document.createElement('canvas');
+		c.width = W; c.height = H;
+		return {
+			id: ++uid,
+			name: name,
+			canvas: c,
+			ctx: c.getContext('2d', { willReadFrequently: false }),
+			visible: true,
+			opacity: 1,
+			isBg: !!isBg
+		};
+	}
+
+	const bg = makeLayer('Background', true);
+	let bgColor = '#ffffff';
+	function paintBg() {
+		bg.ctx.clearRect(0, 0, W, H);
+		bg.ctx.fillStyle = bgColor;
+		bg.ctx.fillRect(0, 0, W, H);
+	}
+	paintBg();
+
+	let layers = [bg, makeLayer('Layer 1')];
+	let activeId = layers[1].id;
+
+	function active() { return layers.find(l => l.id === activeId) || layers[layers.length - 1]; }
+	function indexOf(id) { return layers.findIndex(l => l.id === id); }
+
+	function render() {
+		view.clearRect(0, 0, W, H);
+		if (!bg.visible) {
+			view.fillStyle = checker;
+			view.fillRect(0, 0, W, H);
+		}
+		for (const l of layers) {
+			if (!l.visible) continue;
+			view.globalAlpha = l.opacity;
+			view.drawImage(l.canvas, 0, 0);
+		}
+		view.globalAlpha = 1;
+	}
+
+	const undoStack = [];
+	const redoStack = [];
+	const MAX_STEPS = 24;
+
+	function snapshot(layer) {
+		return { id: layer.id, data: layer.canvas.toDataURL('image/png') };
+	}
+	function pushUndo(layer) {
+		undoStack.push(snapshot(layer));
+		if (undoStack.length > MAX_STEPS) undoStack.shift();
+		redoStack.length = 0;
+		refreshHistoryButtons();
+	}
+	function restore(snap) {
+		const l = layers.find(x => x.id === snap.id);
+		if (!l) return Promise.resolve();
+		return new Promise(res => {
+			const img = new Image();
+			img.onload = function () {
+				l.ctx.clearRect(0, 0, W, H);
+				l.ctx.drawImage(img, 0, 0);
+				render();
+				thumbFor(l);
+				res();
+			};
+			img.onerror = res;
+			img.src = snap.data;
+		});
+	}
+	async function undo() {
+		const snap = undoStack.pop();
+		if (!snap) return;
+		const l = layers.find(x => x.id === snap.id);
+		if (l) redoStack.push(snapshot(l));
+		await restore(snap);
+		refreshHistoryButtons();
+	}
+	async function redo() {
+		const snap = redoStack.pop();
+		if (!snap) return;
+		const l = layers.find(x => x.id === snap.id);
+		if (l) undoStack.push(snapshot(l));
+		await restore(snap);
+		refreshHistoryButtons();
+	}
+	function refreshHistoryButtons() {
+		document.getElementById('undo').disabled = undoStack.length === 0;
+		document.getElementById('redo').disabled = redoStack.length === 0;
+		document.getElementById('undo').style.opacity = undoStack.length ? 1 : .45;
+		document.getElementById('redo').style.opacity = redoStack.length ? 1 : .45;
+	}
+
+	const tool = { mode: 'brush', color: '#111111', size: 12 };
+
+	const btnBrush = document.getElementById('toolBrush');
+	const btnEraser = document.getElementById('toolEraser');
+	function setTool(mode) {
+		tool.mode = mode;
+		btnBrush.setAttribute('aria-pressed', String(mode === 'brush'));
+		btnEraser.setAttribute('aria-pressed', String(mode === 'eraser'));
+	}
+	btnBrush.addEventListener('click', () => setTool('brush'));
+	btnEraser.addEventListener('click', () => setTool('eraser'));
+
+	const sizeInput = document.getElementById('size');
+	const sizeNum = document.getElementById('sizeNum');
+	sizeInput.addEventListener('input', () => {
+		tool.size = +sizeInput.value;
+		sizeNum.textContent = sizeInput.value;
+		sizeRing();
+	});
+
+	const colorInput = document.getElementById('color');
+	colorInput.addEventListener('input', () => {
+		tool.color = colorInput.value;
+		markSwatch();
+	});
+
+	const PALETTE = [
+		'#111111', '#ffffff', '#e23b3b', '#f2820b', '#ffd21e', '#3fae4a',
+		'#2f8fdd', '#7b4fd1', '#f06fae', '#8b5a2b', '#7d8a99', '#00c2b2',
+		'#b3123c', '#1c3f94', '#4d4d4d', '#c9f24d'
+	];
+	const swatchWrap = document.getElementById('swatches');
+	PALETTE.forEach(hex => {
+		const b = document.createElement('button');
+		b.className = 'swatch';
+		b.style.background = hex;
+		b.title = hex;
+		b.setAttribute('aria-pressed', 'false');
+		b.addEventListener('click', () => {
+			tool.color = hex;
+			colorInput.value = hex;
+			setTool('brush');
+			markSwatch();
+		});
+		swatchWrap.appendChild(b);
+	});
+	function markSwatch() {
+		[...swatchWrap.children].forEach((b, i) => {
+			b.setAttribute('aria-pressed', String(PALETTE[i].toLowerCase() === tool.color.toLowerCase()));
+		});
+	}
+	markSwatch();
+
+	let drawing = false, last = null, strokeLayer = null;
+
+	function toCanvas(e) {
+		const r = board.getBoundingClientRect();
+		return {
+			x: (e.clientX - r.left) * (W / r.width),
+			y: (e.clientY - r.top) * (H / r.height)
+		};
+	}
+
+	function beginStroke(ctx) {
+		ctx.lineCap = 'round';
+		ctx.lineJoin = 'round';
+		ctx.strokeStyle = tool.color;
+		ctx.fillStyle = tool.color;
+		ctx.globalCompositeOperation = (tool.mode === 'eraser') ? 'destination-out' : 'source-over';
+	}
+
+	function widthFor(e) {
+		if (e.pointerType === 'pen' && e.pressure > 0) {
+			return Math.max(1, tool.size * (0.35 + e.pressure * 0.9));
+		}
+		return tool.size;
+	}
+
+	board.addEventListener('pointerdown', e => {
+		const l = active();
+		if (l.isBg) return;
+		board.setPointerCapture(e.pointerId);
+		drawing = true;
+		strokeLayer = l;
+		pushUndo(l);
+
+		const p = toCanvas(e);
+		last = p;
+		const ctx = l.ctx;
+		beginStroke(ctx);
+		ctx.beginPath();
+		ctx.arc(p.x, p.y, widthFor(e) / 2, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.globalCompositeOperation = 'source-over';
+		render();
+	});
+
+	board.addEventListener('pointermove', e => {
+		moveRing(e);
+		if (!drawing || !strokeLayer) return;
+		const ctx = strokeLayer.ctx;
+		beginStroke(ctx);
+		ctx.lineWidth = widthFor(e);
+
+		const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+		ctx.beginPath();
+		ctx.moveTo(last.x, last.y);
+		for (const ev of events) {
+			const p = toCanvas(ev);
+			const mid = { x: (last.x + p.x) / 2, y: (last.y + p.y) / 2 };
+			ctx.quadraticCurveTo(last.x, last.y, mid.x, mid.y);
+			last = p;
+		}
+		ctx.stroke();
+		ctx.globalCompositeOperation = 'source-over';
+		render();
+	});
+
+	function endStroke() {
+		if (!drawing) return;
+		drawing = false;
+		if (strokeLayer) thumbFor(strokeLayer);
+		strokeLayer = null;
+		last = null;
+	}
+	board.addEventListener('pointerup', endStroke);
+	board.addEventListener('pointercancel', endStroke);
+	board.addEventListener('pointerleave', e => { ring.style.opacity = 0; endStroke(); });
+	board.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') ring.style.opacity = 1; });
+
+	function moveRing(e) {
+		if (e.pointerType === 'touch') return;
+		const r = board.getBoundingClientRect();
+		ring.style.left = (e.clientX - r.left) + 'px';
+		ring.style.top = (e.clientY - r.top) + 'px';
+		ring.style.opacity = 1;
+	}
+	function sizeRing() {
+		const r = board.getBoundingClientRect();
+		const scale = r.width / W;
+		const d = Math.max(6, tool.size * scale);
+		ring.style.width = d + 'px';
+		ring.style.height = d + 'px';
+	}
+	window.addEventListener('resize', sizeRing);
+
+	document.getElementById('fillLayer').addEventListener('click', () => {
+		const l = active();
+		if (l.isBg) { alert('Use the background swatch to recolour it.'); return; }
+		pushUndo(l);
+		l.ctx.globalCompositeOperation = 'source-over';
+		l.ctx.fillStyle = tool.color;
+		l.ctx.fillRect(0, 0, W, H);
+		render(); thumbFor(l);
+	});
+
+	document.getElementById('clearLayer').addEventListener('click', () => {
+		const l = active();
+		if (l.isBg) { alert('The background can be hidden with its eye button.'); return; }
+		pushUndo(l);
+		l.ctx.clearRect(0, 0, W, H);
+		render(); thumbFor(l);
+	});
+
+	document.getElementById('clearAll').addEventListener('click', () => {
+		if (!confirm('Throw away every layer and start a fresh doodle?')) return;
+		layers = [bg, makeLayer('Layer 1')];
+		activeId = layers[1].id;
+		bgColor = '#ffffff';
+		bg.visible = true;
+		bg.opacity = 1;
+		paintBg();
+		undoStack.length = 0; redoStack.length = 0;
+		refreshHistoryButtons();
+		buildLayerList(); render();
+	});
+
+	document.getElementById('addLayer').addEventListener('click', () => {
+		let n = layers.filter(l => !l.isBg).length + 1;
+		const names = layers.map(l => l.name);
+		while (names.indexOf('Layer ' + n) !== -1) n++;
+		const l = makeLayer('Layer ' + n);
+		const i = indexOf(activeId);
+		layers.splice(i + 1, 0, l);
+		activeId = l.id;
+		buildLayerList(); render();
+	});
+
+	const opacityInput = document.getElementById('opacity');
+	const opacityNum = document.getElementById('opacityNum');
+	opacityInput.addEventListener('input', () => {
+		const l = active();
+		l.opacity = opacityInput.value / 100;
+		opacityNum.textContent = opacityInput.value + '%';
+		render();
+	});
+
+	function thumbFor(layer) {
+		const el = document.querySelector('.layer[data-id="' + layer.id + '"] .thumb');
+		if (!el) return;
+		const c = el.getContext('2d');
+		c.clearRect(0, 0, el.width, el.height);
+		if (!layer.isBg) {
+			c.fillStyle = '#f3f3f3';
+			c.fillRect(0, 0, el.width, el.height);
+			c.fillStyle = '#dedede';
+			for (let y = 0; y < el.height; y += 8)
+				for (let x = 0; x < el.width; x += 8)
+					if (((x + y) / 8) % 2 === 0) c.fillRect(x, y, 8, 8);
+		}
+		c.drawImage(layer.canvas, 0, 0, el.width, el.height);
+	}
+
+	const layerList = document.getElementById('layerList');
+
+	function buildLayerList() {
+		layerList.innerHTML = '';
+		for (let i = layers.length - 1; i >= 0; i--) {
+			const l = layers[i];
+			const li = document.createElement('li');
+			li.className = 'layer' + (l.id === activeId ? ' active' : '') + (l.visible ? '' : ' hidden');
+			li.dataset.id = l.id;
+
+			const eye = document.createElement('button');
+			eye.className = 'mini';
+			eye.textContent = l.visible ? '◉' : '◌';
+			eye.title = l.visible ? 'Hide layer' : 'Show layer';
+			eye.addEventListener('click', ev => {
+				ev.stopPropagation();
+				l.visible = !l.visible;
+				buildLayerList(); render();
+			});
+
+			const thumb = document.createElement('canvas');
+			thumb.className = 'thumb';
+			thumb.width = thumb.height = 40;
+
+			const name = document.createElement('span');
+			name.className = 'lname';
+			name.textContent = l.name;
+			name.title = 'Click to rename';
+			name.addEventListener('click', ev => {
+				ev.stopPropagation();
+				activeId = l.id;
+				const next = prompt('Layer name', l.name);
+				if (next && next.trim()) l.name = next.trim();
+				buildLayerList();
+			});
+
+			const btns = document.createElement('div');
+			btns.className = 'lbtns';
+
+			if (l.isBg) {
+				const col = document.createElement('input');
+				col.type = 'color';
+				col.value = bgColor;
+				col.style.width = '38px';
+				col.style.height = '30px';
+				col.style.borderWidth = '2px';
+				col.title = 'Background colour';
+				col.addEventListener('click', ev => ev.stopPropagation());
+				col.addEventListener('input', () => {
+					bgColor = col.value;
+					paintBg(); render();
+				});
+				btns.appendChild(col);
+			} else {
+				btns.appendChild(miniBtn('▲', 'Move up', ev => { ev.stopPropagation(); moveLayer(l.id, 1); }));
+				btns.appendChild(miniBtn('▼', 'Move down', ev => { ev.stopPropagation(); moveLayer(l.id, -1); }));
+				btns.appendChild(miniBtn('⧉', 'Duplicate', ev => { ev.stopPropagation(); duplicate(l.id); }));
+				btns.appendChild(miniBtn('✕', 'Delete', ev => { ev.stopPropagation(); removeLayer(l.id); }));
+			}
+
+			li.appendChild(eye);
+			li.appendChild(thumb);
+			li.appendChild(name);
+			li.appendChild(btns);
+			li.addEventListener('click', () => {
+				activeId = l.id;
+				buildLayerList();
+			});
+			layerList.appendChild(li);
+			thumbFor(l);
+		}
+
+		const a = active();
+		opacityInput.value = Math.round(a.opacity * 100);
+		opacityNum.textContent = opacityInput.value + '%';
+	}
+
+	function miniBtn(label, title, fn) {
+		const b = document.createElement('button');
+		b.className = 'mini';
+		b.textContent = label;
+		b.title = title;
+		b.addEventListener('click', fn);
+		return b;
+	}
+
+	function moveLayer(id, dir) {
+		const i = indexOf(id);
+		const j = i + dir;
+		if (j < 1 || j >= layers.length) return;
+		const t = layers[i]; layers[i] = layers[j]; layers[j] = t;
+		buildLayerList(); render();
+	}
+
+	function duplicate(id) {
+		const src = layers[indexOf(id)];
+		const copy = makeLayer(src.name + ' copy');
+		copy.ctx.drawImage(src.canvas, 0, 0);
+		copy.opacity = src.opacity;
+		layers.splice(indexOf(id) + 1, 0, copy);
+		activeId = copy.id;
+		buildLayerList(); render();
+	}
+
+	function removeLayer(id) {
+		if (layers.filter(l => !l.isBg).length <= 1) {
+			alert('Keep at least one drawing layer.');
+			return;
+		}
+		const i = indexOf(id);
+		layers.splice(i, 1);
+		if (activeId === id) activeId = layers[Math.min(i, layers.length - 1)].id;
+		buildLayerList(); render();
+	}
+
+	const withBg = document.getElementById('withBg');
+	const dlHint = document.getElementById('dlHint');
+	withBg.addEventListener('change', () => {
+		dlHint.textContent = withBg.checked
+			? 'Flat PNG with the background baked in.'
+			: 'Transparent PNG — drops the background layer.';
+	});
+
+	function flatten(includeBg) {
+		const out = document.createElement('canvas');
+		out.width = W; out.height = H;
+		const o = out.getContext('2d');
+		for (const l of layers) {
+			if (!l.visible) continue;
+			if (l.isBg && !includeBg) continue;
+			o.globalAlpha = l.opacity;
+			o.drawImage(l.canvas, 0, 0);
+		}
+		o.globalAlpha = 1;
+		return out;
+	}
+
+	const dlBtn = document.getElementById('download');
+	dlBtn.addEventListener('click', () => {
+		const out = flatten(withBg.checked);
+		out.toBlob(blob => {
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'origami-doodle' + (withBg.checked ? '' : '-transparent') + '.png';
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			setTimeout(() => URL.revokeObjectURL(url), 4000);
+		}, 'image/png');
+
+		const r = dlBtn.getBoundingClientRect();
+		burst(r.left + r.width / 2, r.top + r.height / 2);
+		cheer(r.left + r.width / 2, r.top);
+	});
+
+	const cCanvas = document.getElementById('confetti');
+	const cx = cCanvas.getContext('2d');
+	let bits = [], raf = null;
+
+	function fitConfetti() {
+		const dpr = window.devicePixelRatio || 1;
+		cCanvas.width = window.innerWidth * dpr;
+		cCanvas.height = window.innerHeight * dpr;
+		cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+	}
+	fitConfetti();
+	window.addEventListener('resize', fitConfetti);
+
+	const CONFETTI_COLORS = ['#e23b3b', '#f2820b', '#ffd21e', '#3fae4a', '#2f8fdd', '#7b4fd1', '#f06fae', '#ffffff'];
+
+	function burst(x, y) {
+		for (let i = 0; i < 110; i++) {
+			const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.0;
+			const sp = 7 + Math.random() * 13;
+			bits.push({
+				x: x, y: y,
+				vx: Math.cos(a) * sp + (Math.random() - 0.5) * 3,
+				vy: Math.sin(a) * sp,
+				w: 7 + Math.random() * 9,
+				h: 5 + Math.random() * 8,
+				rot: Math.random() * Math.PI,
+				vr: (Math.random() - 0.5) * 0.4,
+				color: CONFETTI_COLORS[(Math.random() * CONFETTI_COLORS.length) | 0],
+				life: 1
+			});
+		}
+		if (!raf) raf = requestAnimationFrame(step);
+	}
+
+	function step() {
+		cx.clearRect(0, 0, cCanvas.width, cCanvas.height);
+		const floor = window.innerHeight + 60;
+		bits = bits.filter(b => b.life > 0 && b.y < floor);
+		for (const b of bits) {
+			b.vy += 0.32;
+			b.vx *= 0.99;
+			b.vy *= 0.99;
+			b.x += b.vx;
+			b.y += b.vy;
+			b.rot += b.vr;
+			b.life -= 0.004;
+			cx.save();
+			cx.translate(b.x, b.y);
+			cx.rotate(b.rot);
+			cx.globalAlpha = Math.max(0, Math.min(1, b.life));
+			cx.fillStyle = b.color;
+			cx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h * Math.abs(Math.cos(b.rot)));
+			cx.strokeStyle = 'rgba(0,0,0,.75)';
+			cx.lineWidth = 1;
+			cx.strokeRect(-b.w / 2, -b.h / 2, b.w, b.h * Math.abs(Math.cos(b.rot)));
+			cx.restore();
+		}
+		if (bits.length) { raf = requestAnimationFrame(step); }
+		else { cx.clearRect(0, 0, cCanvas.width, cCanvas.height); raf = null; }
+	}
+
+	function cheer(x, y) {
+		const el = document.createElement('div');
+		el.className = 'cheer';
+		el.textContent = 'Amazing!';
+		el.style.left = x + 'px';
+		el.style.top = y + 'px';
+		document.body.appendChild(el);
+		setTimeout(() => el.remove(), 1600);
+	}
+
+	document.getElementById('undo').addEventListener('click', undo);
+	document.getElementById('redo').addEventListener('click', redo);
+
+	document.addEventListener('keydown', e => {
+		const typing = /input|textarea/i.test(e.target.tagName);
+		if (typing) return;
+		const meta = e.ctrlKey || e.metaKey;
+		if (meta && e.key.toLowerCase() === 'z') {
+			e.preventDefault();
+			e.shiftKey ? redo() : undo();
+		} else if (meta && e.key.toLowerCase() === 'y') {
+			e.preventDefault(); redo();
+		} else if (e.key === 'b' || e.key === 'B') {
+			setTool('brush');
+		} else if (e.key === 'e' || e.key === 'E') {
+			setTool('eraser');
+		} else if (e.key === '[' || e.key === ']') {
+			const d = e.key === '[' ? -2 : 2;
+			sizeInput.value = Math.min(120, Math.max(1, +sizeInput.value + d));
+			sizeInput.dispatchEvent(new Event('input'));
+		}
+	});
+
+	window.addEventListener('beforeunload', e => {
+		const drawn = layers.some(l => !l.isBg && l.canvas.toDataURL().length > 3000);
+		if (drawn) { e.preventDefault(); e.returnValue = ''; }
+	});
+
+	buildLayerList();
+	render();
+	refreshHistoryButtons();
+	sizeRing();
+	requestAnimationFrame(sizeRing);
+})();
+</script>
+</body>
+</html>
